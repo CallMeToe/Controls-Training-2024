@@ -8,6 +8,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import static frc.robot.Constants.GeneralRollerConstants.*;
 import static frc.robot.Constants.*;
 
+import com.pathplanner.lib.path.PathPlannerTrajectory.State;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
@@ -48,6 +49,7 @@ public class GeneralRoller extends SubsystemBase {
   public LinearFilter filter = LinearFilter.singlePoleIIR(0.5, 0.2);
 
   // You generally only need one motor for the rollers on Vivaldi
+  private GeneralRollerStates currentState;
   private final CANSparkMax m_spark;
 
   // Hint: motors need a voltage! You'll still need to set the motor's voltage yourself, though.
@@ -58,34 +60,57 @@ public class GeneralRoller extends SubsystemBase {
 
 
     // You have been given the CANSparkMax here, which is representative of the motor driving this shaft, 
-    // you still need to confige it! Look at the docs and the provided arguments to this subsystem, and determine what those configs should be.
-
-
+    // you still need to configure it! Look at the docs and the provided arguments to this subsystem, and determine what those configs should be.
+    m_spark.setInverted(setInverted);
+    m_spark.setIdleMode(IdleMode.kBrake);
   }
 
   @Override
   public void periodic() {
     //This function runs ~20 times per second. It is in every subsytem, and is effectively your "while" loop or "update" loop.
     //Thus, the usage of while(true) and similar loops is generally avoided--- they can cause memory-leaks and other jank! Instead, put looping code here. 
-  }
+   
+
+
+
+    if (getCurrentState() ==  GeneralRollerStates.StateOff){
+      desiredVoltage = 0;
+    }
+    if (getCurrentState() == GeneralRollerStates.StateForward){
+      desiredVoltage = 9;
+     }
+    if (getCurrentState() == GeneralRollerStates.StateReverse){
+      desiredVoltage = -9;
+     }
+    if (getCurrentState() == GeneralRollerStates.StateForwardFast){
+      desiredVoltage = 12;
+     }
+    
+    
+}
 
   public double getCurrent() {
     //hint: this method wants you to return the Amperage (Current, or A) to the motor. the LinearFilter is useful here.
+    return m_spark.getOutputCurrent();
 
-    return 1.0; //replace 1.0 with your return value
+   // return 1.0; //replace 1.0 with your return value
   }
-
-
+  
+  public void setVoltage​(double outputVolts){
+    desiredVoltage = outputVolts;
+  }
   
   
   public void requestState(GeneralRollerStates desiredState) {
     // hint: this method is called with a GeneralRollerState when the state is to be changed.
-    
+    currentState = desiredState;
   }
  
   
   public GeneralRollerStates getCurrentState() { 
-    return GeneralRollerStates.StateForward; //You should change this!
+
+
+   return currentState;
     
   }
 
